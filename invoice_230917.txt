@@ -1,0 +1,10 @@
+MTE
+COUNTRY                      
+4
+ID_                           38        NUMBER    
+NAME_                         100       VARCHAR2  
+CAPITAL_CITY                 100       VARCHAR2     
+CURRENCY                     30        VARCHAR2  
+2        
+1 3         5012 7         TURKIYE3 6         ANKARA4 2         TL
+1 3         5022 5         ITALY3 4         ROME4 4         EURO
