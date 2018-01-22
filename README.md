@@ -1,3 +1,3 @@
-# 2018_w_internship
+# 2018 Winter Internship
 
 Activities done during the internship.
