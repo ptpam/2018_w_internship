@@ -1,4 +1,4 @@
-CREATE OR REPLACE DIRECTORY MY_N_DIR AS 'C:';
+CREATE OR REPLACE DIRECTORY MY_N_DIR AS 'C:\Users\7173\Desktop\Video_alistirma\Alistirmalar';
 GRANT READ ON DIRECTORY N_DIR TO SYS;
 
 DECLARE
@@ -12,13 +12,14 @@ DECLARE
  column_length VARCHAR2(30);        -- length of the specified type
  column_type VARCHAR2(30);          -- type of the specified column
  sql_stmt    VARCHAR2(200);         -- sql statement for insert an element into the table
- temp_sql_stmt VARCHAR2(200);
- tmp_no number;
+ temp_sql_stmt VARCHAR2(200);       -- keeps the insert statement without values
  cntr number;
  cntr_table number;
+ tmp_no number;
  TYPE table_array IS TABLE OF VARCHAR2(250);    
  t_array table_array:=  table_array();      -- keeps each column info as in the order of name /type(length)
- t_array_type table_array:= table_array();  -- keeps type info for each column 
+ t_array_type table_array:= table_array();  -- keeps type info for each column
+ t_array_name table_array:= table_array();  -- keeps columns' name
 BEGIN
   str_create_table := 'CREATE TABLE ';
   sql_stmt := 'INSERT INTO ';
@@ -37,10 +38,6 @@ BEGIN
         sql_stmt := CONCAT(sql_stmt, CONCAT(table_name, ' VALUES ('));
       ELSIF cntr = 3 THEN           -- indicates the # of the columns in the table for specified file format
         column_no := vNewLine;
-        FOR Lcntr2 IN 1..(column_no-1) LOOP
-          sql_stmt := CONCAT(sql_stmt, CONCAT(':',CONCAT(Lcntr2,',')));
-        END LOOP;
-        sql_stmt:= CONCAT(sql_stmt, CONCAT(':', CONCAT(column_no, ') USING ')));
       ELSIF cntr > 3  AND cntr <= 3 + column_no THEN    -- reads column info as name / type(length)
         cntr_table := cntr_table + 1;
         column_name:= REGEXP_SUBSTR (vNewLine, '(\S*)(\s*)', 1, 1);
@@ -50,6 +47,8 @@ BEGIN
         t_array(t_array.LAST) := column_name|| ' ' || column_type ||' ('||column_length|| ')' ; 
         t_array_type.EXTEND;
         t_array_type(t_array_type.LAST) := column_type;
+        t_array_name.EXTEND;
+        t_array_name(t_array_name.LAST) := column_name;
       ELSIF cntr = 4 + column_no THEN
         FOR Lcntr IN 1..column_no     -- loop for "CREATE TABLE" SQL format
         LOOP
@@ -61,7 +60,7 @@ BEGIN
           END IF;
         END LOOP;
         str_create_table := CONCAT(str_create_table, ')');
-        --EXECUTE IMMEDIATE str_create_table;   -- execution for creating the table
+        EXECUTE IMMEDIATE str_create_table;   -- execution for creating the table
         element_no := vNewLine;
         temp_sql_stmt := sql_stmt; 
       ELSIF cntr > 4 + column_no AND cntr <= 4 + column_no + element_no THEN
@@ -86,11 +85,10 @@ BEGIN
             ELSE
                 sql_stmt := CONCAT(sql_stmt, SUBSTR(REGEXP_SUBSTR (vNewLine, '(\S*)(\s*)', 1, 2*Lcntr3+1),1,tmp_no));
             END IF;
+                sql_stmt := CONCAT(sql_stmt, ')');
           END IF;
         END LOOP;
-        dbms_output.put_line(sql_stmt);
         EXECUTE IMMEDIATE sql_stmt;
-        --dbms_output.put_line('exec is successful');
       END IF; 
     EXCEPTION
       WHEN OTHERS THEN
@@ -99,4 +97,3 @@ BEGIN
   END LOOP;
   UTL_FILE.FCLOSE(vInHandle);
 END fopen;
-
